@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📚 Học tiếng Trung – 20 từ mới</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f2f4f7;color:#222}
+.container{max-width:900px;margin:auto;padding:20px}
+h1{text-align:center;margin:8px 0}
+.subtitle{text-align:center;color:#666;margin-bottom:18px}
+.tabs{display:flex;gap:10px;margin-bottom:15px}
+button,select{border:0;border-radius:10px;padding:12px 16px;font-size:16px;cursor:pointer}
+button{background:#fff;border:1px solid #ddd}
+button.active{background:#222;color:#fff}
+.card{background:#fff;border-radius:16px;padding:28px;box-shadow:0 3px 12px #0001;text-align:center}
+.progress{color:#666;margin-bottom:14px}
+.group{font-size:14px;color:#777;margin-bottom:12px}
+.prompt{font-size:32px;font-weight:bold;margin:30px 0;min-height:70px;display:flex;align-items:center;justify-content:center}
+.answer{display:none;border-top:1px solid #eee;padding-top:18px}
+.chinese{font-size:60px;font-weight:bold}
+.pinyin{font-size:25px;color:#555;margin-top:8px}
+.hanam{font-size:18px;color:#777;margin-top:8px}
+.controls{display:flex;justify-content:center;gap:10px;margin-top:20px;flex-wrap:wrap}
+.quiz{display:none}
+.mode-box{margin-bottom:18px;text-align:left}
+.mode-box select{width:100%;border:1px solid #ddd;background:#fff}
+.quiz-word{font-size:54px;font-weight:bold;margin:22px 0}
+.question{font-size:18px}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.option{background:#f6f7f9;border:1px solid #ddd;border-radius:10px;padding:15px;cursor:pointer}
+.correct{background:#d9f7df!important}
+.wrong{background:#ffdede!important}
+.result{min-height:30px;margin-top:15px;font-weight:bold}
+@media(max-width:600px){.options{grid-template-columns:1fr}.prompt{font-size:27px}}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>📚 Học tiếng Trung</h1>
+<div class="subtitle">20 từ mới – Động từ & Địa điểm</div>
+
+<div class="tabs">
+<button id="learnBtn" class="active" onclick="showLearn()">📖 Học từ</button>
+<button id="quizBtn" onclick="showQuiz()">📝 Trắc nghiệm</button>
+<button id="manageBtn" onclick="showManage()">🔒 Quản lý từ</button>
+</div>
+
+<div id="learn" class="card">
+<div class="progress" id="learnProgress"></div>
+<div class="group" id="learnGroup"></div>
+<div class="prompt" id="prompt"></div>
+<div class="answer" id="answer">
+<div class="chinese" id="chinese"></div>
+<div class="pinyin" id="pinyin"></div>
+<div class="hanam" id="hanam"></div>
+</div>
+<div style="color:#777;font-size:14px;margin-bottom:8px">← → di chuyển từ &nbsp; | &nbsp; ↓ hiện đáp án</div>
+<div class="controls">
+<button onclick="showAnswer()">⬇ Hiện đáp án</button>
+<button onclick="prevWord()">⬅ Trái: Từ trước</button>
+<button onclick="nextWord()">Phải: Từ tiếp ➡</button>
+<button onclick="shuffleWords()">🔀 Xáo trộn</button>
+</div>
+</div>
+
+<div id="manage" class="card" style="display:none;text-align:left">
+  <h2 style="text-align:center;margin-top:0">🔒 Quản lý từ vựng</h2>
+  <p style="color:#666;text-align:center">Thêm hoặc xóa từ sau khi mở khóa bằng mật khẩu.</p>
+  <div id="lockArea">
+    <label for="managePassword"><b id="passwordLabel">Mật khẩu quản lý</b></label>
+    <input id="managePassword" type="password" placeholder="Nhập mật khẩu" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;margin:8px 0">
+    <button onclick="unlockManage()">Mở khóa</button>
+    <div id="lockMessage" style="color:#b33;margin-top:10px"></div>
+    <p style="font-size:13px;color:#777">Lần đầu sử dụng, nhập mật khẩu bạn muốn đặt rồi bấm “Thiết lập mật khẩu”.</p>
+  </div>
+  <div id="manageArea" style="display:none">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <input id="newChinese" placeholder="Chữ Hán" style="padding:12px;border:1px solid #ddd;border-radius:10px">
+      <input id="newPinyin" placeholder="Pinyin" style="padding:12px;border:1px solid #ddd;border-radius:10px">
+      <input id="newMeaning" placeholder="Nghĩa tiếng Việt" style="padding:12px;border:1px solid #ddd;border-radius:10px">
+      <input id="newHanam" placeholder="Âm Hán (không bắt buộc)" style="padding:12px;border:1px solid #ddd;border-radius:10px">
+      <select id="newGroup" style="grid-column:1/-1;border:1px solid #ddd"><option>Động từ</option><option>Địa điểm</option><option>Danh từ</option><option>Tính từ</option><option>Khác</option></select>
+    </div>
+    <div class="controls"><button onclick="addWord()">➕ Thêm từ</button><button onclick="lockManage()">🔐 Khóa lại</button></div>
+    <h3>Danh sách từ vựng</h3>
+    <div id="wordList"></div>
+  </div>
+</div>
+
+<div id="quiz" class="card quiz">
+<div class="mode-box">
+<label><b>Chọn kiểu kiểm tra:</b></label><br><br>
+<select id="quizMode" onchange="startQuiz()">
+<option value="pinyin">Hán tự → Chọn Pinyin</option>
+<option value="meaning">Hán tự → Chọn nghĩa</option>
+<option value="chinese">Pinyin → Chọn Hán tự</option>
+</select>
+</div>
+<div class="progress" id="quizProgress"></div>
+<div class="quiz-word" id="quizWord"></div>
+<div class="question">Đáp án nào đúng?</div>
+<div class="options" id="options"></div>
+<div class="result" id="result"></div>
+<div class="controls"><button id="nextBtn" onclick="nextQuiz()">Câu tiếp ➡</button></div>
+</div>
+</div>
+
+<script>
+let words = [{"stt": 1, "chinese": "去", "pinyin": "qù", "hanam": "Khứ", "meaning": "Đi", "group": "Động từ"}, {"stt": 2, "chinese": "回", "pinyin": "huí", "hanam": "Hồi", "meaning": "Về", "group": "Động từ"}, {"stt": 3, "chinese": "取", "pinyin": "qǔ", "hanam": "Thủ", "meaning": "Lấy, rút", "group": "Động từ"}, {"stt": 4, "chinese": "换", "pinyin": "huàn", "hanam": "Hoán", "meaning": "Đổi", "group": "Động từ"}, {"stt": 5, "chinese": "买", "pinyin": "mǎi", "hanam": "Mãi", "meaning": "Mua", "group": "Động từ"}, {"stt": 6, "chinese": "看", "pinyin": "kàn", "hanam": "Khán", "meaning": "Xem, thăm", "group": "Động từ"}, {"stt": 7, "chinese": "寄", "pinyin": "jì", "hanam": "Ký", "meaning": "Gửi", "group": "Động từ"}, {"stt": 8, "chinese": "学", "pinyin": "xué", "hanam": "Học", "meaning": "Học, học tập", "group": "Động từ"}, {"stt": 9, "chinese": "坐", "pinyin": "zuò", "hanam": "Tọa", "meaning": "Ngồi", "group": "Động từ"}, {"stt": 10, "chinese": "吃", "pinyin": "chī", "hanam": "Cật", "meaning": "Ăn", "group": "Động từ"}, {"stt": 11, "chinese": "银行", "pinyin": "yín háng", "hanam": "", "meaning": "Ngân hàng", "group": "Địa điểm"}, {"stt": 12, "chinese": "超市", "pinyin": "chāo shì", "hanam": "", "meaning": "Siêu thị", "group": "Địa điểm"}, {"stt": 13, "chinese": "陈老师家", "pinyin": "Chén lǎo shī jiā", "hanam": "", "meaning": "Nhà cô giáo Trần", "group": "Địa điểm"}, {"stt": 14, "chinese": "图书馆", "pinyin": "tú shū guǎn", "hanam": "", "meaning": "Thư viện", "group": "Địa điểm"}, {"stt": 15, "chinese": "邮局", "pinyin": "yóu jú", "hanam": "", "meaning": "Bưu điện", "group": "Địa điểm"}, {"stt": 16, "chinese": "中国", "pinyin": "zhōng guó", "hanam": "", "meaning": "Trung Quốc", "group": "Địa điểm"}, {"stt": 17, "chinese": "北宁市", "pinyin": "běi níng shì", "hanam": "", "meaning": "TP Bắc Ninh", "group": "Địa điểm"}, {"stt": 18, "chinese": "河内", "pinyin": "hé nèi", "hanam": "", "meaning": "Hà Nội", "group": "Địa điểm"}, {"stt": 19, "chinese": "美国", "pinyin": "měi guó", "hanam": "", "meaning": "Nước Mỹ", "group": "Địa điểm"}, {"stt": 20, "chinese": "鸿海公司", "pinyin": "hóng hǎi gōng sī", "hanam": "", "meaning": "Công ty Hồng Hải", "group": "Địa điểm"}];
+let index=0, quizIndex=0, quizOrder=[...words], answered=false;
+const defaultWords = words.map(w=>({...w}));
+try {
+  const savedWords=localStorage.getItem('mandarinWords_v1');
+  if(savedWords){const parsed=JSON.parse(savedWords);if(Array.isArray(parsed)&&parsed.length)words=parsed;}
+} catch(e) {}
+let manageUnlocked=false;
+function saveWords(){localStorage.setItem('mandarinWords_v1',JSON.stringify(words));}
+function showManage(){
+ document.getElementById('learn').style.display='none';
+ document.getElementById('quiz').style.display='none';
+ document.getElementById('manage').style.display='block';
+ ['learnBtn','quizBtn'].forEach(id=>document.getElementById(id).classList.remove('active'));
+ document.getElementById('manageBtn').classList.add('active');
+ document.getElementById('managePassword').value='';
+ document.getElementById('lockMessage').textContent='';
+ document.getElementById('manageArea').style.display=manageUnlocked?'block':'none';
+ document.getElementById('lockArea').style.display=manageUnlocked?'none':'block';
+ if(manageUnlocked)renderWordList();
+}
+function unlockManage(){
+ const entered=document.getElementById('managePassword').value;
+ if(!entered){document.getElementById('lockMessage').textContent='Vui lòng nhập mật khẩu.';return;}
+ const stored=localStorage.getItem('mandarinManagePassword_v1');
+ if(!stored){
+   localStorage.setItem('mandarinManagePassword_v1',entered);
+   manageUnlocked=true;
+   document.getElementById('lockMessage').textContent='';
+ } else if(entered===stored){manageUnlocked=true;}
+ else {document.getElementById('lockMessage').textContent='Mật khẩu không đúng.';return;}
+ document.getElementById('lockArea').style.display='none';
+ document.getElementById('manageArea').style.display='block';
+ renderWordList();
+}
+function lockManage(){
+ manageUnlocked=false;
+ document.getElementById('manageArea').style.display='none';
+ document.getElementById('lockArea').style.display='block';
+ document.getElementById('managePassword').value='';
+}
+function addWord(){
+ if(!manageUnlocked)return;
+ const chinese=document.getElementById('newChinese').value.trim();
+ const pinyin=document.getElementById('newPinyin').value.trim();
+ const meaning=document.getElementById('newMeaning').value.trim();
+ const hanam=document.getElementById('newHanam').value.trim();
+ const group=document.getElementById('newGroup').value;
+ if(!chinese||!pinyin||!meaning){alert('Vui lòng nhập đủ Chữ Hán, Pinyin và Nghĩa.');return;}
+ words.push({stt:words.length+1,chinese,pinyin,hanam,meaning,group});
+ saveWords();
+ ['newChinese','newPinyin','newMeaning','newHanam'].forEach(id=>document.getElementById(id).value='');
+ index=words.length-1;quizOrder=[...words];renderLearn();renderWordList();
+}
+function deleteWord(i){
+ if(!manageUnlocked||!confirm('Bạn có chắc muốn xóa từ này?'))return;
+ if(words.length===1){alert('Cần giữ lại ít nhất một từ.');return;}
+ words.splice(i,1);words.forEach((w,n)=>w.stt=n+1);
+ index=Math.min(index,words.length-1);quizOrder=[...words];quizIndex=0;
+ saveWords();renderLearn();renderWordList();
+}
+function renderWordList(){
+ const list=document.getElementById('wordList');list.innerHTML='';
+ words.forEach((w,i)=>{
+   const row=document.createElement('div');
+   row.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #eee';
+   const info=document.createElement('div');info.style.cssText='min-width:0;overflow-wrap:anywhere';
+   info.textContent=(i+1)+'. '+w.chinese+' · '+w.pinyin+' · '+w.meaning;
+   const del=document.createElement('button');del.textContent='🗑 Xóa';del.onclick=()=>deleteWord(i);
+   row.append(info,del);list.appendChild(row);
+ });
+}
+
+function renderLearn(){
+ const w=words[index];
+ document.getElementById('learnProgress').textContent=`${index+1} / ${words.length}`;
+ document.getElementById('learnGroup').textContent=w.group;
+ document.getElementById('prompt').textContent=w.meaning;
+ document.getElementById('answer').style.display='none';
+ document.getElementById('chinese').textContent=w.chinese;
+ document.getElementById('pinyin').textContent=w.pinyin;
+ document.getElementById('hanam').textContent=w.hanam ? 'Âm Hán: '+w.hanam : '';
+}
+function showAnswer(){document.getElementById('answer').style.display='block'}
+
+// Nhấn phím Space để hiện đáp án khi đang ở phần Học từ
+document.addEventListener('keydown', function(event) {
+  if (event.code === 'Space' && document.getElementById('learn').style.display !== 'none') {
+    const tag = event.target.tagName;
+    if (tag !== 'BUTTON' && tag !== 'SELECT' && tag !== 'INPUT' && tag !== 'TEXTAREA') {
+      event.preventDefault();
+      showAnswer();
+    }
+  }
+});
+function nextWord(){index=(index+1)%words.length;renderLearn()}
+function prevWord(){index=(index-1+words.length)%words.length;renderLearn()}
+function shuffleWords(){words.sort(()=>Math.random()-0.5);index=0;renderLearn()}
+
+function showLearn(){
+ document.getElementById('learn').style.display='block';
+ document.getElementById('quiz').style.display='none';
+ document.getElementById('manage').style.display='none';
+ document.getElementById('manageBtn').classList.remove('active');
+ document.getElementById('learnBtn').classList.add('active');
+ document.getElementById('quizBtn').classList.remove('active');
+}
+function showQuiz(){
+ document.getElementById('learn').style.display='none';
+ document.getElementById('manage').style.display='none';
+ document.getElementById('manageBtn').classList.remove('active');
+ document.getElementById('quiz').style.display='block';
+ document.getElementById('learnBtn').classList.remove('active');
+ document.getElementById('quizBtn').classList.add('active');
+ startQuiz();
+}
+function startQuiz(){
+ quizOrder=[...words].sort(()=>Math.random()-0.5); quizIndex=0; showQuizQuestion();
+}
+function showQuizQuestion(){
+ const w=quizOrder[quizIndex];
+ const mode=document.getElementById('quizMode').value;
+ answered=false;
+ document.getElementById('result').textContent='';
+ document.getElementById('nextBtn').style.display='none';
+ document.getElementById('quizProgress').textContent=`${quizIndex+1} / ${quizOrder.length}`;
+ document.getElementById('quizWord').textContent=(mode==='chinese')?w.pinyin:w.chinese;
+ let key = mode==='pinyin' ? 'pinyin' : mode==='meaning' ? 'meaning' : 'chinese';
+ let pool=[...words].filter(x=>x!==w).sort(()=>Math.random()-0.5).slice(0,3);
+ let choices=[w,...pool].sort(()=>Math.random()-0.5);
+ document.getElementById('options').innerHTML='';
+ choices.forEach(x=>{
+   const b=document.createElement('button');
+   b.className='option';
+   b.textContent=x[key];
+   b.onclick=()=>checkAnswer(b,x[key]===w[key],w[key]);
+   document.getElementById('options').appendChild(b);
+ });
+}
+function checkAnswer(btn,ok,correct){
+ if(answered)return;
+ answered=true;
+ document.querySelectorAll('.option').forEach(b=>b.disabled=true);
+ btn.classList.add(ok?'correct':'wrong');
+ document.getElementById('result').textContent=ok?'✅ Chính xác!':'❌ Sai. Đáp án: '+correct;
+ document.getElementById('nextBtn').style.display='inline-block';
+}
+function nextQuiz(){
+ quizIndex++;
+ if(quizIndex>=quizOrder.length){quizIndex=0;quizOrder=[...words].sort(()=>Math.random()-0.5)}
+ showQuizQuestion();
+}
+document.addEventListener('keydown', function(event) {
+ if (document.getElementById('learn').style.display === 'none' ||
+     ['INPUT','TEXTAREA','SELECT','BUTTON'].includes(document.activeElement.tagName)) return;
+
+ if (event.key === 'ArrowLeft') {
+   event.preventDefault();
+   prevWord();
+ } else if (event.key === 'ArrowRight') {
+   event.preventDefault();
+   nextWord();
+ } else if (event.key === 'ArrowDown') {
+   event.preventDefault();
+   showAnswer();
+ }
+});
+renderLearn();
+</script>
+</body>
+</html>
